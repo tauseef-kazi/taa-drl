@@ -83,7 +83,7 @@ Run cells top‑to‑bottom:
 2. **Extract and Populate saved price and macroeconomic dataset** – populates `adjusted_etf_data` & `macroeconomic_df` dicts.
 3. **HMM regime labelling** – `compute_rolling_hmm_for_etfs()` (caches to `hmm_rolling/`).
 4. **Feature prep** – `preprocess_etf_data()` & `preprocess_macro_data()`.
-5. **Training loops** – `run_drl_backtest()` for every extractor/reward comb.
+5. **Training loops** – `run_drl_backtest()` for every extractor/reward combination. If you wish not to train the agents from scratch and just use the already trained agents in deterministic mode for testing purpose, then drop the `trained_models/` directory in the repo root and set following flag when calling the training loop `run_drl_backtest(load_saved=True)` function.
 6. **Kelly ensemble & analytics** – `BacktestTracker` plots + `metrics()` table.
 
 TensorBoard launches automatically (cell magic):
