@@ -7,10 +7,11 @@ MSc Financial Engineering Thesis – **Tauseef Kazi**
 > A reproducible research repo that trains deep‐reinforcement‑learning agents to allocate across **36 global ETFs** while conditioning on **13‑region macroeconomic signals**.
 > Key contributions:
 >
-> 1. **Multi‑input Gym environment** combining price, regime (HMM) & macro state spaces.
+> 1. **Multi‑input Gym environment** combining price, regime (HMM), Technical indicators & macro state spaces.
 > 2. **Attention‑based feature extractors** (No‑Macro MHA, per‑region LSTM, Bi‑LSTM + Transformer) built on *Stable‑Baselines3*.
-> 3. Walk‑forward back‑testing from **2003‑07‑10 → 2025‑04‑11** with Kelly‐ensemble post‑processing.
-> 4. Rich analytics: rolling Sharpe, Sortino, drawdown heat‑maps & Greek attribution.
+> 3. Training the DRL agents from **2003-07-10 to 2016-11-01** and backtested from *2016-11-02 to 2025‑04‑11** with Kelly‐ensemble post‑processing.
+> 4. Benchmarks: SPY, DIA, BuyAndHold & EquallyWeighted.
+> 5. Rich analytics: rolling Sharpe, Sortino, drawdown heat‑maps & Greek attribution.
 
 ---
 
@@ -19,20 +20,20 @@ MSc Financial Engineering Thesis – **Tauseef Kazi**
 ```text
 .
 ├── data/                                      # Raw & engineered datasets (auto‑created)
-│   ├── price_data.zip                         # 36 ETF OHLCV + Adjusted Close price files (Parquet)
-│   ├── macro_data.zip                         # 13‑region monthly OECD macro with imputed values from othe sources (Parquet)
-│   └── hmm_rolling.zip                        # 36 ETF OHLCV + Adjusted Close + HMM regime files (Parquet)
+│   ├── price_data.zip                         # 36 ETF OHLCV + Calculated adjusted close price (Parquet)
+│   ├── macro_data.zip                         # 13‑region monthly OECD macro with imputed values from other sources (Parquet)
+│   └── hmm_rolling.zip                        # 36 ETF OHLCV + Adjusted Close + 2 state HMM regimes (Parquet)
+│   └── alpha_etfs.zip                         # Raw ETF & Benchmark data downloaded from Alphavantage.co APIs (CSV)
+│   └── oecd_macro_raw_data.zip                # Raw macroeconomic data downloaded from OECD APIs (CSV)
+│   └── macroeconomic_data.zip                 # Raw macroeconomic data downloaded for imputations from IMF, Worldbank, Central Banks and National Bureau of Statistics of respective countries (CSV and XLSX)
 ├── notebooks/
 │   └── M7 - Final Project - Capstone.ipynb    # **Main end‑to‑end notebook**
 │   └── M7 - Macroeconomic Variables.ipynb     # **Notebook for EDA and imputation process of macro data**
 ├── trained_models/                            # Best SB3 checkpoints (auto‑saved)
 ├── tensorboard_log/                           # Training curves (auto‑saved)
-├── results/                                   # Plots & performance tables (auto‑saved)
 ├── requirements.txt                           # Exact python deps (see below)
 └── README.md                                  
 ```
-
-> **Tip**   Large binary files (\*.zip, \*.parquet, \*.pt) are listed in `.gitignore` – track them with Git‑LFS or keep them outside version control.
 
 ---
 
@@ -61,27 +62,29 @@ Environment variables (optional secrets) live in `.env` and are loaded via **pyt
 
 ## 3  Data Setup
 
-1. **Download** `price_data.zip` and `macro_data.zip` (link provided in thesis appendix or Google Drive).
+1. **Download** all the files under data folder.
 2. Drop both files in repo root.
-3. First run extracts them into `price_data/` & `macro_data/` automatically.
+3. First run extracts them into `price_data/`, `hmm_rolling/` & `macro_data/` automatically.
+4. For execution efficiency 3-year rolling HMMs are calculated and stored in hmm_rolling.zip, if you wish to recalculate the HMMs then **do not drop** hmm_rolling.zip in the repo root.
 
-> Each macro file is `REGION.parquet`; each ETF file is `etf_TICKER.parquet`.
+> Each macro file is `REGION.parquet`; each ETF price file is `etf_TICKER.parquet`; each HMM rolling file is `hmm_rolling_TICKER.parquet`.
 
 ---
 
 ## 4  Quick Start (Notebook)
 
 ```bash
-jupyter notebook notebooks/thesis_pipeline.ipynb
+jupyter notebook notebooks/M7 - Final Project - Capstone.ipynb
 ```
 
 Run cells top‑to‑bottom:
 
-1. **Extraction & loading** – populates `adjusted_etf_data` & `macroeconomic_df` dicts.
-2. **HMM regime labelling** – `compute_rolling_hmm_for_etfs()` (caches to `hmm_rolling/`).
-3. **Feature prep** – `preprocess_etf_data()` & `preprocess_macro_data()`.
-4. **Training loops** – `run_drl_backtest()` for every extractor/reward comb.
-5. **Kelly ensemble & analytics** – `BacktestTracker` plots + `metrics()` table.
+1. **Imports** - imports required libraries.
+2. **Extract and Populate saved price and macroeconomic dataset** – populates `adjusted_etf_data` & `macroeconomic_df` dicts.
+3. **HMM regime labelling** – `compute_rolling_hmm_for_etfs()` (caches to `hmm_rolling/`).
+4. **Feature prep** – `preprocess_etf_data()` & `preprocess_macro_data()`.
+5. **Training loops** – `run_drl_backtest()` for every extractor/reward comb.
+6. **Kelly ensemble & analytics** – `BacktestTracker` plots + `metrics()` table.
 
 TensorBoard launches automatically (cell magic):
 
